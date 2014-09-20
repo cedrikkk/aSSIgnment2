@@ -32,9 +32,26 @@ load the data
 ```{r, echo = TRUE,cache=TRUE}
 FStormData<- read.csv("./FStormData.csv.bz2",, stringsAsFactors=F)
 dim(FStormData)
+head(FStormData[, 1:28])
+names(FStormData)
+head(FStormData[, 8])
+unique(FStormData$EVTYPE)
 
 ```
 
+
+cheking missing values as there imporantin environment data.
+```{r}
+mean(is.na(FStormData$EVTYPE))
+```
+ there no missing data in that column
+ 
+ 
+ 
+```{r}
+FStormData[grep("1993",FStormData$GN_DATE),1:4]
+summary()
+```
 
 ### Across the United States, which types of events (as indicated in the EVTYPE variable) are most harmful with respect to population health?
 
