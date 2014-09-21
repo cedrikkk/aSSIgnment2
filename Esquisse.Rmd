@@ -1,0 +1,190 @@
+---
+title: "Untitled"
+author: "Kameni"
+date: "Sunday, September 21, 2014"
+output: html_document
+---
+# Title: 
+(Your document should have a title that briefly summarizes your data analysis)
+
+
+## synopsis
+(Synopsis: Immediately after the title, there should be a synopsis which describes and summarizes your analysis in at most 10 complete sentences)
+
+
+## Data Loading and  Processing
+```{r}
+Sys.setenv(LANG = "en_US.UTF-8")
+
+```
+
+
+ We start the anlysis by downloading the data.
+```{r}
+
+if (!file.exists("./StormData")) {dir.create("./StormData")}
+url <- "http://d396qusza40orc.cloudfront.net/repdata%2Fdata%2FStormData.csv.bz2"
+#download.file(url,"./StormData/dataSet.zip")
+
+
+```
+
+
+
+####read in the data. Since the data set 
+```{r}
+library(R.utils)
+if (!file.exists("./StormData/dataSet.csv")) {
+    bunzip2 ("./StormData/dataSet.zip", "./StormData/dataSet.csv")
+}
+
+stormData<- read.csv ("./StormData/dataSet.csv",stringsAsFactors=F)
+head(stormData)
+str(stormData)
+```
+
+
+
+
+We will start by reducing the data set and keep only the columns we need for our analysis.
+
+ We take a look on the column names
+```{r}
+columNames<-names(stormData)
+
+columNames
+```
+
+
+
+ We select the relavant columns
+```{r}
+selectedColumns<-columNames[c(2,8,23,24,25,26,27,28)] 
+
+selectedColumns
+
+```
+
+
+
+ we reduce the dimensions of the data set
+```{r}
+reducedDf<-stormData[,selectedColumns]
+dim(reducedDf)
+```
+
+#### Processing the the BGN_DATE column
+
+```{r}
+# remove the "0:00:0" time indication to make the BGN_DATE column easy to handle
+reducedDf$BGN_DATE<-gsub(" 0:00:00","",reducedDf$BGN_DATE)
+
+# replace the / by the - 
+reducedDf$BGN_DATE<-gsub("/","-",reducedDf$BGN_DATE)
+
+
+reducedDf$BGN_DATE<-as.Date(reducedDf$BGN_DATE,format = "%m-%d-%Y")
+
+head(reducedDf$BGN_DATE)
+
+```
+
+ 
+ 
+ We will replace the "BGN_DATE"" column by a new column with only the year whitout month an day. This step will help to easily reduce the data set by removing observations before 1996.
+ 
+ 
+```{r}
+#select the 4 first characters of the BGN_DATE column
+#the 4 first characters correspond to the year
+years<-as.numeric(unclass(substr(reducedDf$BGN_DATE, 1, 4)))
+
+#Add the column  "years""
+reducedDf<-cbind(years,reducedDf) # add the new column
+
+#remove the "BGN_DATE"column from data set
+reducedDf$BGN_DATE <-NULL
+
+#view the data 
+dim(reducedDf)
+head(reducedDf)
+
+```
+
+
+We reduce the data frame: We will concentrate our analysis on the  observations between 1996 and 2011
+```{r}
+yearsDf<- reducedDf[reducedDf$years >= 1996,]
+head(yearsDf)
+dim(yearsDf)
+```
+
+
+##### processing the Columns: FATALITIES & INJURIES
+
+We remove all rows where either the pair of fatalities and injuries are both zero, or propertydamage and cropdamage both are zero. 
+If a row has PROPDMG = 0, CROPDMG=0, INJURIES+FATALITIES=0 then that observation has no use in this project.  
+
+Subsetting for only the observations where one of those variables is >0 
+```{r}
+rmZero<-yearsDf[(yearsDf$FATALITIES == 0 & yearsDf$INJURIES)|yearsDf$PROPDMG  > 0|yearsDf$CROPDMG > 0,]
+
+dim(rmZero)
+
+```
+
+
+
+#### Processing the column "EVTYPE"
+ We want to see the  different event types that are recorded in the data set
+ 
+ 
+```{r}
+      Event<- unique(tolower(rmZero$EVTYPE)) # create a vector of different Event type
+
+```
+
+there are 985 different Event types...
+```{r}
+length(Event)
+```
+
+the list of these Event types shows some anomalies.
+```{r}
+Event
+```
+
+  
+ We want to  remove white space at the begining of some rows. We have to repeat
+ the operation several times since some rows have more than one white spaces at the begining.
+  
+  
+```{r}
+#  find and remove space before the Event name 
+for(i in 1:4) {   # repeat the action  times
+Event<-gsub("^ ", "",Event)
+}
+
+```
+
+
+### Across the United States, which types of events (as indicated in the EVTYPE variable) are most harmful with respect to population health?
+
+
+
+ 
+ 
+
+
+
+### Across the United States, which types of events have the greatest economic consequences?
+•1 Check for outliers, high leverage, overdispersion
+•2 Estimate degrees of freedom to adjust for unmeasured confounders
+•3 Sensitivity analysis wrt
+
+
+## Results 
+
+```{r}
+sessionInfo()
+```
