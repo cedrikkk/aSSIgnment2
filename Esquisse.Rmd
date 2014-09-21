@@ -144,7 +144,7 @@ dim(rmZero)
 
 ```
 
-there are 985 different Event types...
+there are  166 different Event types...
 ```{r}
 length(Event)
 ```
@@ -167,6 +167,64 @@ Event<-gsub("^ ", "",Event)
 
 ```
 
+
+```{r}
+#Flood<-Event[grep("flood",Event)];Flood
+E
+#Erosion<-Event[grep("erosion",Event)];Erosion
+
+Event<-gsub("tstm","thunderstorm",Event)
+Event<-gsub("flash flood/flood","flash flood",Event)
+Event<-gsub("flood/flash/flood","flash flood",Event)
+Event<-gsub("erosion/cstl flood","coastal flood",Event)
+Event<-gsub("coastal flooding","coastal flood",Event)
+Event<-gsub("coastal flooding/erosion","coastal flood",Event)
+Event<-gsub("coastal  flooding/erosion","coastal flood",Event)
+Event<-gsub("ice jam flood \\(minor","ice jam flood",Event)
+Event<-gsub("lake effect snow" ,"lake-effect snow",Event)
+Event<-gsub("heavy snow shower","heavy snow",Event)
+Event<-gsub("snow squalls","snow squall" ,Event)
+
+
+Event<-gsub("^extreme cold$","extreme cold/wind chill" ,Event)
+Event<-gsub("^cold/wind chill$","extreme cold/wind chill" ,Event)
+Event<-gsub("^unseasonably cold$","unseasonable cold" ,Event)
+
+Event<-gsub("^gusty winds$","gusty wind" ,Event)
+Event<-gsub("^high winds$","high wind" ,Event)
+Event<-gsub("^thunderstorm wind 45$","thunderstorm wind \\(g45\\)" ,Event)
+Event<-gsub("^thunderstorm wind  \\(g45\\)$","thunderstorm wind \\(g45\\)" ,Event)
+Event<-gsub("^thunderstorm wind g45$$","thunderstorm wind \\(g45\\)" ,Event)
+Event<-gsub("^thunderstorm wind 40$","thunderstorm wind \\(g40\\)" ,Event)
+Event<-gsub("^thunderstorm wind \\(41\\)$" ,"thunderstorm wind \\(g41\\)" ,Event)
+Event<-gsub("^non\\-thunderstorm wind$","non thunderstorm wind" ,Event)
+Event<-gsub("^strong wind$","strong winds" ,Event)
+Event<-gsub("^typhoon$","hurricane/typhoon" ,Event)
+Event<-gsub("^rip currents$","rip current" ,Event)
+Event<-gsub("^thunderstorm$","thunderstorm wind" ,Event)
+Event<-gsub("^winter weather mix$","winter weather/mix" ,Event)
+Event<-gsub("^frost$","frost/freeze" ,Event)
+
+Event<-gsub("^landslides$","landslide" ,Event)
+Event<-gsub("^mixed precip$","mixed precipitation" ,Event)
+Event<-gsub("^mudslide$","mud slide" ,Event)
+Event<-gsub("^river flooding$","river flood" ,Event)
+
+```
+
+
+
+
+```{r}
+library(xlsx)
+  event<-read.xlsx("./names.xlsx",sheetIndex=1)
+      
+events<-tolower(event[,1])
+events
+ flood<-events[grep("storm",events)];flood
+erosion<-events[grep("jam",events)];erosion
+
+```
 
 ### Across the United States, which types of events (as indicated in the EVTYPE variable) are most harmful with respect to population health?
 
