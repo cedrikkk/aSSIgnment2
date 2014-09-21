@@ -20,40 +20,155 @@ Sys.setenv(LANG = "en_US.UTF-8")
 
 
  We start the anlysis by downloading the data.
-```{r, echo = TRUE,cache=TRUE}
-url <- "https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2FStormData.csv.bz2"
-download.file(url, "./FStormData.csv.bz2")
-downloadDate<- date();downloadDate #record the date of the download
-
-```
-
-
-load the data
-```{r, echo = TRUE,cache=TRUE}
-FStormData<- read.csv("./FStormData.csv.bz2",, stringsAsFactors=F)
-dim(FStormData)
-head(FStormData[, 1:28])
-names(FStormData)
-head(FStormData[, 8])
-unique(FStormData$EVTYPE)
-
-```
-
-
-cheking missing values as there imporantin environment data.
 ```{r}
-mean(is.na(FStormData$EVTYPE))
+
+if (!file.exists("./StormData")) {dir.create("./StormData")}
+url <- "http://d396qusza40orc.cloudfront.net/repdata%2Fdata%2FStormData.csv.bz2"
+#download.file(url,"./StormData/dataSet.zip")
+
+
+```
+
+
+
+####read in the data. Since the data set 
+```{r}
+library(R.utils)
+if (!file.exists("./StormData/dataSet.csv")) {
+    bunzip2 ("./StormData/dataSet.zip", "./StormData/dataSet.csv")
+}
+
+stormData<- read.csv ("./StormData/dataSet.csv",stringsAsFactors=F)
+head(stormData)
+str(stormData)
+```
+
+
+#### Processing the the BGN_DATE column
+
+```{r}
+# remove the "0:00:0" time indication to make the BGN_DATE column easy to handle
+stormData$BGN_DATE<-gsub(" 0:00:00","",stormData$BGN_DATE)
+
+# replace the / by the - 
+stormData$BGN_DATE<-gsub("/","-",stormData$BGN_DATE)
+
+
+stormData$BGN_DATE<-as.Date(stormData$BGN_DATE,format = "%m-%d-%Y")
+
+head(stormData$BGN_DATE)
+
+```
+
+ We create a new column with only the years and add it to the data frame.
+ for this we select the 4 first characters of the BGN_DATE column
+ 
+ 
+```{r}
+years<-as.numeric(unclass(substr(stormData$BGN_DATE, 1, 4)))
+
+stormData<-cbind(stormData,years) # add the new column
+
+```
+
+
+We reduce the data frame: We will concentrate our analysis on the  observations between 1996 and 2011
+```{r}
+reducedDf<- stormData[stormData$years >= 1996,]
+head(reducedDf)
+```
+
+
+##### processing the Columns: FATALITIES & INJURIES
+## froom peer
+"Do yourself a favor and subset out only the data you need.  If a row has PROPDMG = 0, CROPDMG=0, INJURIES+FATALITIES=0 then I can't see what use we have for that observation in this project.  
+
+Subsetting for only the observations where one of those variables is >0 leaves <300k rows.  (Or as the NWS would report it, OBSERVATIONS=3 OBSERVATIONSEXP = 5)"
+
+
+We remove all rows where either the pair of fatalities and injuries are both zero, or propertydamage and cropdamage both are zero. 
+
+```{r}
+fatalInjury<-subset(reducedDf,FATALITIES > 0 & INJURIES > 0);dim(fatalInjury)
+fatalInjury1<-subset(reducedDf,FATALITIES == 0 & INJURIES == 0);dim(fatalInjury1)
+
+asd<-reducedDf[reducedDf$FATALITIES == 0 &  reducedDf$INJURIES == 0,]
+ dim(asd)    
+dim(reducedDf)-dim(fatalInjury1)
+
+
+
+class(reducedDf$FATALITIES)
+head(asd,50)
+head(stormData)
+ names(stormData)
+str(stormData)
+ #     stormData[stormData$FATALITIES==0,]
+#stormData[stormData$FATALITIES==0 && == 0 && stormData$INJURIES == 0,]
+
+gas<-grep("^0$",stormData$FATALITIES)
+at<-grep("^0$",stormData$INJURIES)
+}
+
+```
+
+
+
+
+
+### Across the United States, which types of events (as indicated in the EVTYPE variable) are most harmful with respect to population health?
+
+
+
+we start by reducing the data size
+```{r}
+data<-stormData[ 1:28]
+```
+
+
+
+ We want to see the  different event types that are recorded in the data set
+```{r}
+      Event<- unique(tolower(data$EVTYPE)) # create a vector of different Event type
+
+```
+
+there are 985 different Event types...
+```{r}
+length(Event)
+```
+
+the list of these Event types shows some anomalies.
+```{r}
+Event
+```
+
+  
+ We want to  remove white space at the begining of some rows. We have to repeat
+ the operation several times since some rows have more than one white spaces at the begining.
+  
+  
+```{r}
+#  find and remove space before the Event name 
+for(i in 1:4) {   # repeat the action  times
+Event<-gsub("^ ", "",Event)
+}
+
+```
+
+
+```{r}
+mean(is.na(stormData$EVTYPE))
 ```
  there no missing data in that column
  
  
  
 ```{r}
-FStormData[grep("1993",FStormData$GN_DATE),1:4]
-summary()
+stormData[grep("1993",stormData$GN_DATE),1:4]
+#summary()
 ```
 
-### Across the United States, which types of events (as indicated in the EVTYPE variable) are most harmful with respect to population health?
 
 ### Across the United States, which types of events have the greatest economic consequences?
 •1 Check for outliers, high leverage, overdispersion
