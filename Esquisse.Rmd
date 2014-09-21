@@ -31,7 +31,7 @@ url <- "http://d396qusza40orc.cloudfront.net/repdata%2Fdata%2FStormData.csv.bz2"
 
 
 
-####read in the data. Since the data set 
+#####read in the data. Since the data set 
 ```{r}
 library(R.utils)
 if (!file.exists("./StormData/dataSet.csv")) {
@@ -73,7 +73,7 @@ reducedDf<-stormData[,selectedColumns]
 dim(reducedDf)
 ```
 
-#### Processing the the BGN_DATE column
+##### Processing the the BGN_DATE column
 
 ```{r}
 # remove the "0:00:0" time indication to make the BGN_DATE column easy to handle
@@ -82,10 +82,12 @@ reducedDf$BGN_DATE<-gsub(" 0:00:00","",reducedDf$BGN_DATE)
 # replace the / by the - 
 reducedDf$BGN_DATE<-gsub("/","-",reducedDf$BGN_DATE)
 
-
+#formate the date
 reducedDf$BGN_DATE<-as.Date(reducedDf$BGN_DATE,format = "%m-%d-%Y")
 
 head(reducedDf$BGN_DATE)
+
+
 
 ```
 
@@ -100,7 +102,7 @@ head(reducedDf$BGN_DATE)
 years<-as.numeric(unclass(substr(reducedDf$BGN_DATE, 1, 4)))
 
 #Add the column  "years""
-reducedDf<-cbind(years,reducedDf) # add the new column
+reducedDf<-cbind(reducedDf,years) # add the new column
 
 #remove the "BGN_DATE"column from data set
 reducedDf$BGN_DATE <-NULL
@@ -109,10 +111,13 @@ reducedDf$BGN_DATE <-NULL
 dim(reducedDf)
 head(reducedDf)
 
+
 ```
 
 
+
 We reduce the data frame: We will concentrate our analysis on the  observations between 1996 and 2011
+
 ```{r}
 yearsDf<- reducedDf[reducedDf$years >= 1996,]
 head(yearsDf)
@@ -120,25 +125,81 @@ dim(yearsDf)
 ```
 
 
-##### processing the Columns: FATALITIES & INJURIES
+##### processing the Columns: FATALITIES & INJURIES & PROPDMG & CROPDMG
 
 We remove all rows where either the pair of fatalities and injuries are both zero, or propertydamage and cropdamage both are zero. 
 If a row has PROPDMG = 0, CROPDMG=0, INJURIES+FATALITIES=0 then that observation has no use in this project.  
 
 Subsetting for only the observations where one of those variables is >0 
 ```{r}
-rmZero<-yearsDf[(yearsDf$FATALITIES == 0 & yearsDf$INJURIES)|yearsDf$PROPDMG  > 0|yearsDf$CROPDMG > 0,]
+rmZero<-yearsDf[(yearsDf$FATALITIES > 0 & yearsDf$INJURIES > 0)|yearsDf$PROPDMG  > 0|yearsDf$CROPDMG > 0,]
 
 dim(rmZero)
+```
+
+
+uppercasing and cleaned up the PROPDMGEXP and CROPDMGEXP columns so that all the blank values were zero
+```{r}
+
+# replace blanks with 0
+rmZero$PROPDMGEXP<-toupper(gsub("^$","0",rmZero$PROPDMGEXP))
+head(rmZero$PROPDMGEXP,110) # view column
+
+# replace blanks with 0
+rmZero$CROPDMGEXP<-toupper(gsub("^$","0",rmZero$CROPDMGEXP))
+head(rmZero$CROPDMGEXP,110)# view column
 
 ```
 
 
+ create 2 columns with the numeric mulpiers to replace the  CROPDMGEXP and PROPDMGEXP columns. then delete the columns PROPDMGEXP and CROPDMGEXP and calculate the domages caused by the events in dollar. Then Calculage the value of the damages for both crop and propdamgaes
+ 
+```{r}
 
-#### Processing the column "EVTYPE"
- We want to see the  different event types that are recorded in the data set
+####### Value of Cropdamages
+
+cropExpDf<- data.frame(cropMultiplier=c(1, 1000,  1000000,1000000000), Character = c("0", "K","M","B" ))
+
+cropExpDf # data frame with character & muneric multipliers
+    
+MergeCropExp<-merge(rmZero,cropExpDf,by.x="CROPDMGEXP",by.y="Character" )
+
+MergeCropExp$CROPDMGEXP<-NULL # delete the CROPDMGEXP column
+
+# calculate the value of the cropdamage in a colum 
+cropDamage<-MergeCropExp$CROPDMG*MergeCropExp$cropMultiplier
+
+MergeCropExp<-cbind(MergeCropExp,cropDamage)
+
+#view data
+head(MergeCropExp,10)
+tail(MergeCropExp,10)
+
+
+
+####### Value of Propdamages
+
+propExpDf<- data.frame(propMultiplier=c(1, 1000,  1000000,1000000000), Characters = c("0", "K","M","B" ))
+
+propExpDf # data frame with character & muneric multipliers
+    
+
+MergedDf<-merge(MergeCropExp,propExpDf,by.x="PROPDMGEXP",by.y="Characters" )
+
+MergedDf$PROPDMGEXP<-NULL # delete the PROPDMGEXP column
+
+
+# calculate the value of the propdamage in a colum 
+propDamage<-MergedDf$PROPDMG*MergedDf$propMultiplier
+MergedDf<-cbind(MergedDf,propDamage)
+
+head(MergedDf,10)
+tail(MergedDf,10)
+```
+
+##### Processing the column "EVTYPE"
  
- 
+ lowcasing the event types to facilitate the clean-up-process
 ```{r}
 rmZero$EVTYPE<- tolower(rmZero$EVTYPE) # create a vector of different Event type
 
@@ -159,6 +220,8 @@ rmZero$EVTYPE<-gsub("^ ", "",rmZero$EVTYPE)
 
 ```
 
+ 
+clean up the names of event types
 
 ```{r}
 
@@ -195,13 +258,9 @@ rmZero$EVTYPE<-gsub("^mixed precip$","mixed precipitation" ,rmZero$EVTYPE)
 rmZero$EVTYPE<-gsub("^mudslide$","mud slide" ,rmZero$EVTYPE)
 rmZero$EVTYPE<-gsub("^river flooding$","river flood" ,rmZero$EVTYPE)
 
-Event<- unique(rmZero$EVTYPE)
-length(Event)
-xas<-length(Event) #133
-xas
 ```
 
-there are `xas` differents event types
+
 
 
 ```{r}
