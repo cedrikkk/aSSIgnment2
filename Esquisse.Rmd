@@ -199,23 +199,26 @@ tail(MergedDf,10)
 
 ##### Processing the column "EVTYPE"
  
- lowcasing the event types to facilitate the clean-up-process
-```{r}
-rmZero$EVTYPE<- tolower(rmZero$EVTYPE) # create a vector of different Event type
+ 
+the list of these Event types shows some anomalies that we will fix.
 
+ We start by lowercasing the event types to facilitate the clean-up-process
+```{r}
+MergedDf$EVTYPE<- tolower(MergedDf$EVTYPE) # create a vector of different Event type
+
+
+head(MergedDf$EVTYPE)
 ```
 
 
-the list of these Event types shows some anomalies that we will fix.
 
  We want to  remove white space at the begining of some rows. We have to repeat
- the operation several times since some rows have more than one white spaces at the begining.
-  
+ the operation several times since some rows have more than one white spaces at the begining. 
   
 ```{r}
 #  find rows that begin with white space then remove the white space 
 for(i in 1:4) {   # repeat the action  times
-rmZero$EVTYPE<-gsub("^ ", "",rmZero$EVTYPE)
+MergedDf$EVTYPE<-gsub("^ ", "",MergedDf$EVTYPE)
 }
 
 ```
@@ -225,45 +228,51 @@ clean up the names of event types
 
 ```{r}
 
-rmZero$EVTYPE<-gsub("tstm","thunderstorm",rmZero$EVTYPE)
-rmZero$EVTYPE<-gsub("flash flood/flood","flash flood",rmZero$EVTYPE)
-rmZero$EVTYPE<-gsub("flood/flash/flood","flash flood",rmZero$EVTYPE)
-rmZero$EVTYPE<-gsub("erosion/cstl flood","coastal flood",rmZero$EVTYPE)
-rmZero$EVTYPE<-gsub("coastal flooding","coastal flood",rmZero$EVTYPE)
-rmZero$EVTYPE<-gsub("coastal flooding/erosion","coastal flood",rmZero$EVTYPE)
-rmZero$EVTYPE<-gsub("coastal  flooding/erosion","coastal flood",rmZero$EVTYPE)
-rmZero$EVTYPE<-gsub("ice jam flood \\(minor","ice jam flood",rmZero$EVTYPE)
-rmZero$EVTYPE<-gsub("^lake effect snow$" ,"lake-effect snow",rmZero$EVTYPE)
-rmZero$EVTYPE<-gsub("^heavy snow shower$","heavy snow",rmZero$EVTYPE)
-rmZero$EVTYPE<-gsub("^snow squalls$","snow squall" ,rmZero$EVTYPE)
-rmZero$EVTYPE<-gsub("^extreme cold$","extreme cold/wind chill" ,rmZero$EVTYPE)
-rmZero$EVTYPE<-gsub("^cold/wind chill$","extreme cold/wind chill" ,rmZero$EVTYPE)
-rmZero$EVTYPE<-gsub("^unseasonably cold$","unseasonable cold" ,rmZero$EVTYPE)
-rmZero$EVTYPE<-gsub("^gusty winds$","gusty wind" ,rmZero$EVTYPE)
-rmZero$EVTYPE<-gsub("^high winds$","high wind" ,rmZero$EVTYPE)
-rmZero$EVTYPE<-gsub("^thunderstorm wind 45$","thunderstorm wind \\(g45\\)" ,rmZero$EVTYPE)
-rmZero$EVTYPE<-gsub("^thunderstorm wind  \\(g45\\)$","thunderstorm wind \\(g45\\)" ,rmZero$EVTYPE)
-rmZero$EVTYPE<-gsub("^thunderstorm wind g45$","thunderstorm wind \\(g45\\)" ,rmZero$EVTYPE)
-rmZero$EVTYPE<-gsub("^thunderstorm wind 40$","thunderstorm wind \\(g40\\)" ,rmZero$EVTYPE)
-rmZero$EVTYPE<-gsub("^thunderstorm wind \\(41\\)$" ,"thunderstorm wind \\(g41\\)" ,rmZero$EVTYPE)
-rmZero$EVTYPE<-gsub("^non\\-thunderstorm wind$","non thunderstorm wind" ,rmZero$EVTYPE)
-rmZero$EVTYPE<-gsub("^strong wind$","strong winds" ,rmZero$EVTYPE)
-rmZero$EVTYPE<-gsub("^typhoon$","hurricane/typhoon" ,rmZero$EVTYPE)
-rmZero$EVTYPE<-gsub("^rip currents$","rip current" ,rmZero$EVTYPE)
-rmZero$EVTYPE<-gsub("^thunderstorm$","thunderstorm wind" ,rmZero$EVTYPE)
-rmZero$EVTYPE<-gsub("^winter weather mix$","winter weather/mix" ,rmZero$EVTYPE)
-rmZero$EVTYPE<-gsub("^frost$","frost/freeze" ,rmZero$EVTYPE)
-rmZero$EVTYPE<-gsub("^landslides$","landslide" ,rmZero$EVTYPE)
-rmZero$EVTYPE<-gsub("^mixed precip$","mixed precipitation" ,rmZero$EVTYPE)
-rmZero$EVTYPE<-gsub("^mudslide$","mud slide" ,rmZero$EVTYPE)
-rmZero$EVTYPE<-gsub("^river flooding$","river flood" ,rmZero$EVTYPE)
+MergedDf$EVTYPE<-gsub("tstm","thunderstorm",MergedDf$EVTYPE)
+MergedDf$EVTYPE<-gsub("flash flood/flood","flash flood",MergedDf$EVTYPE)
+MergedDf$EVTYPE<-gsub("flood/flash/flood","flash flood",MergedDf$EVTYPE)
+MergedDf$EVTYPE<-gsub("erosion/cstl flood","coastal flood",MergedDf$EVTYPE)
+MergedDf$EVTYPE<-gsub("coastal flooding","coastal flood",MergedDf$EVTYPE)
+MergedDf$EVTYPE<-gsub("coastal flooding/erosion","coastal flood",MergedDf$EVTYPE)
+MergedDf$EVTYPE<-gsub("coastal  flooding/erosion","coastal flood",MergedDf$EVTYPE)
+MergedDf$EVTYPE<-gsub("ice jam flood \\(minor","ice jam flood",MergedDf$EVTYPE)
+MergedDf$EVTYPE<-gsub("^lake effect snow$" ,"lake-effect snow",MergedDf$EVTYPE)
+MergedDf$EVTYPE<-gsub("^heavy snow shower$","heavy snow",MergedDf$EVTYPE)
+MergedDf$EVTYPE<-gsub("^snow squalls$","snow squall" ,MergedDf$EVTYPE)
+MergedDf$EVTYPE<-gsub("^extreme cold$","extreme cold/wind chill" ,MergedDf$EVTYPE)
+MergedDf$EVTYPE<-gsub("^cold/wind chill$","extreme cold/wind chill" ,MergedDf$EVTYPE)
+MergedDf$EVTYPE<-gsub("^unseasonably cold$","unseasonable cold" ,MergedDf$EVTYPE)
+MergedDf$EVTYPE<-gsub("^gusty winds$","gusty wind" ,MergedDf$EVTYPE)
+MergedDf$EVTYPE<-gsub("^high winds$","high wind" ,MergedDf$EVTYPE)
+MergedDf$EVTYPE<-gsub("^thunderstorm wind 45$","thunderstorm wind" ,MergedDf$EVTYPE)
+MergedDf$EVTYPE<-gsub("^thunderstorm wind  \\(g45\\)$","thunderstorm wind" ,MergedDf$EVTYPE)
+MergedDf$EVTYPE<-gsub("^thunderstorm wind \\(g45\\)$","thunderstorm wind" ,MergedDf$EVTYPE)
+MergedDf$EVTYPE<-gsub("^thunderstorm wind \\(g40\\)$","thunderstorm wind" ,MergedDf$EVTYPE)
+MergedDf$EVTYPE<-gsub("^thunderstorm wind \\(g35\\)$","thunderstorm wind" ,MergedDf$EVTYPE)
+MergedDf$EVTYPE<-gsub("^high wind \\(g40\\)$","high wind" ,MergedDf$EVTYPE)
+MergedDf$EVTYPE<-gsub("^thunderstorm wind g45$","thunderstorm wind" ,MergedDf$EVTYPE)
+MergedDf$EVTYPE<-gsub("^thunderstorm wind 40$","thunderstorm wind" ,MergedDf$EVTYPE)
+MergedDf$EVTYPE<-gsub("^thunderstorm wind \\(41\\)$" ,"thunderstorm wind" ,MergedDf$EVTYPE)
+MergedDf$EVTYPE<-gsub("^non\\-thunderstorm wind$","non thunderstorm wind" ,MergedDf$EVTYPE)
+MergedDf$EVTYPE<-gsub("^strong wind$","strong winds" ,MergedDf$EVTYPE)
+MergedDf$EVTYPE<-gsub("^typhoon$","hurricane/typhoon" ,MergedDf$EVTYPE)
+MergedDf$EVTYPE<-gsub("^rip currents$","rip current" ,MergedDf$EVTYPE)
+MergedDf$EVTYPE<-gsub("^thunderstorm$","thunderstorm wind" ,MergedDf$EVTYPE)
+MergedDf$EVTYPE<-gsub("^winter weather mix$","winter weather/mix" ,MergedDf$EVTYPE)
+MergedDf$EVTYPE<-gsub("^frost$","frost/freeze" ,MergedDf$EVTYPE)
+MergedDf$EVTYPE<-gsub("^landslides$","landslide" ,MergedDf$EVTYPE)
+MergedDf$EVTYPE<-gsub("^mixed precip$","mixed precipitation" ,MergedDf$EVTYPE)
+MergedDf$EVTYPE<-gsub("^mudslide$","mud slide" ,MergedDf$EVTYPE)
+MergedDf$EVTYPE<-gsub("^river flooding$","river flood" ,MergedDf$EVTYPE)
 
 ```
 
 
-
+the clean up process is over now. the data is tidy.
 
 ```{r}
+unique(MergedDf$EVTYPE)
+dim(MergedDf)
 
 ```
 
