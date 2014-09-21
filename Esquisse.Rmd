@@ -140,89 +140,71 @@ dim(rmZero)
  
  
 ```{r}
-      Event<- unique(tolower(rmZero$EVTYPE)) # create a vector of different Event type
+rmZero$EVTYPE<- tolower(rmZero$EVTYPE) # create a vector of different Event type
 
 ```
 
-there are  166 different Event types...
-```{r}
-length(Event)
-```
 
-the list of these Event types shows some anomalies.
-```{r}
-Event
-```
+the list of these Event types shows some anomalies that we will fix.
 
-  
  We want to  remove white space at the begining of some rows. We have to repeat
  the operation several times since some rows have more than one white spaces at the begining.
   
   
 ```{r}
-#  find and remove space before the Event name 
+#  find rows that begin with white space then remove the white space 
 for(i in 1:4) {   # repeat the action  times
-Event<-gsub("^ ", "",Event)
+rmZero$EVTYPE<-gsub("^ ", "",rmZero$EVTYPE)
 }
 
 ```
 
 
 ```{r}
-#Flood<-Event[grep("flood",Event)];Flood
-E
-#Erosion<-Event[grep("erosion",Event)];Erosion
 
-Event<-gsub("tstm","thunderstorm",Event)
-Event<-gsub("flash flood/flood","flash flood",Event)
-Event<-gsub("flood/flash/flood","flash flood",Event)
-Event<-gsub("erosion/cstl flood","coastal flood",Event)
-Event<-gsub("coastal flooding","coastal flood",Event)
-Event<-gsub("coastal flooding/erosion","coastal flood",Event)
-Event<-gsub("coastal  flooding/erosion","coastal flood",Event)
-Event<-gsub("ice jam flood \\(minor","ice jam flood",Event)
-Event<-gsub("lake effect snow" ,"lake-effect snow",Event)
-Event<-gsub("heavy snow shower","heavy snow",Event)
-Event<-gsub("snow squalls","snow squall" ,Event)
+rmZero$EVTYPE<-gsub("tstm","thunderstorm",rmZero$EVTYPE)
+rmZero$EVTYPE<-gsub("flash flood/flood","flash flood",rmZero$EVTYPE)
+rmZero$EVTYPE<-gsub("flood/flash/flood","flash flood",rmZero$EVTYPE)
+rmZero$EVTYPE<-gsub("erosion/cstl flood","coastal flood",rmZero$EVTYPE)
+rmZero$EVTYPE<-gsub("coastal flooding","coastal flood",rmZero$EVTYPE)
+rmZero$EVTYPE<-gsub("coastal flooding/erosion","coastal flood",rmZero$EVTYPE)
+rmZero$EVTYPE<-gsub("coastal  flooding/erosion","coastal flood",rmZero$EVTYPE)
+rmZero$EVTYPE<-gsub("ice jam flood \\(minor","ice jam flood",rmZero$EVTYPE)
+rmZero$EVTYPE<-gsub("^lake effect snow$" ,"lake-effect snow",rmZero$EVTYPE)
+rmZero$EVTYPE<-gsub("^heavy snow shower$","heavy snow",rmZero$EVTYPE)
+rmZero$EVTYPE<-gsub("^snow squalls$","snow squall" ,rmZero$EVTYPE)
+rmZero$EVTYPE<-gsub("^extreme cold$","extreme cold/wind chill" ,rmZero$EVTYPE)
+rmZero$EVTYPE<-gsub("^cold/wind chill$","extreme cold/wind chill" ,rmZero$EVTYPE)
+rmZero$EVTYPE<-gsub("^unseasonably cold$","unseasonable cold" ,rmZero$EVTYPE)
+rmZero$EVTYPE<-gsub("^gusty winds$","gusty wind" ,rmZero$EVTYPE)
+rmZero$EVTYPE<-gsub("^high winds$","high wind" ,rmZero$EVTYPE)
+rmZero$EVTYPE<-gsub("^thunderstorm wind 45$","thunderstorm wind \\(g45\\)" ,rmZero$EVTYPE)
+rmZero$EVTYPE<-gsub("^thunderstorm wind  \\(g45\\)$","thunderstorm wind \\(g45\\)" ,rmZero$EVTYPE)
+rmZero$EVTYPE<-gsub("^thunderstorm wind g45$","thunderstorm wind \\(g45\\)" ,rmZero$EVTYPE)
+rmZero$EVTYPE<-gsub("^thunderstorm wind 40$","thunderstorm wind \\(g40\\)" ,rmZero$EVTYPE)
+rmZero$EVTYPE<-gsub("^thunderstorm wind \\(41\\)$" ,"thunderstorm wind \\(g41\\)" ,rmZero$EVTYPE)
+rmZero$EVTYPE<-gsub("^non\\-thunderstorm wind$","non thunderstorm wind" ,rmZero$EVTYPE)
+rmZero$EVTYPE<-gsub("^strong wind$","strong winds" ,rmZero$EVTYPE)
+rmZero$EVTYPE<-gsub("^typhoon$","hurricane/typhoon" ,rmZero$EVTYPE)
+rmZero$EVTYPE<-gsub("^rip currents$","rip current" ,rmZero$EVTYPE)
+rmZero$EVTYPE<-gsub("^thunderstorm$","thunderstorm wind" ,rmZero$EVTYPE)
+rmZero$EVTYPE<-gsub("^winter weather mix$","winter weather/mix" ,rmZero$EVTYPE)
+rmZero$EVTYPE<-gsub("^frost$","frost/freeze" ,rmZero$EVTYPE)
+rmZero$EVTYPE<-gsub("^landslides$","landslide" ,rmZero$EVTYPE)
+rmZero$EVTYPE<-gsub("^mixed precip$","mixed precipitation" ,rmZero$EVTYPE)
+rmZero$EVTYPE<-gsub("^mudslide$","mud slide" ,rmZero$EVTYPE)
+rmZero$EVTYPE<-gsub("^river flooding$","river flood" ,rmZero$EVTYPE)
 
-
-Event<-gsub("^extreme cold$","extreme cold/wind chill" ,Event)
-Event<-gsub("^cold/wind chill$","extreme cold/wind chill" ,Event)
-Event<-gsub("^unseasonably cold$","unseasonable cold" ,Event)
-
-Event<-gsub("^gusty winds$","gusty wind" ,Event)
-Event<-gsub("^high winds$","high wind" ,Event)
-Event<-gsub("^thunderstorm wind 45$","thunderstorm wind \\(g45\\)" ,Event)
-Event<-gsub("^thunderstorm wind  \\(g45\\)$","thunderstorm wind \\(g45\\)" ,Event)
-Event<-gsub("^thunderstorm wind g45$$","thunderstorm wind \\(g45\\)" ,Event)
-Event<-gsub("^thunderstorm wind 40$","thunderstorm wind \\(g40\\)" ,Event)
-Event<-gsub("^thunderstorm wind \\(41\\)$" ,"thunderstorm wind \\(g41\\)" ,Event)
-Event<-gsub("^non\\-thunderstorm wind$","non thunderstorm wind" ,Event)
-Event<-gsub("^strong wind$","strong winds" ,Event)
-Event<-gsub("^typhoon$","hurricane/typhoon" ,Event)
-Event<-gsub("^rip currents$","rip current" ,Event)
-Event<-gsub("^thunderstorm$","thunderstorm wind" ,Event)
-Event<-gsub("^winter weather mix$","winter weather/mix" ,Event)
-Event<-gsub("^frost$","frost/freeze" ,Event)
-
-Event<-gsub("^landslides$","landslide" ,Event)
-Event<-gsub("^mixed precip$","mixed precipitation" ,Event)
-Event<-gsub("^mudslide$","mud slide" ,Event)
-Event<-gsub("^river flooding$","river flood" ,Event)
-
+Event<- unique(rmZero$EVTYPE)
+length(Event)
+xas<-length(Event) #133
+xas
 ```
 
-
+there are `xas` differents event types
 
 
 ```{r}
-library(xlsx)
-  event<-read.xlsx("./names.xlsx",sheetIndex=1)
-      
-events<-tolower(event[,1])
-events
- flood<-events[grep("storm",events)];flood
-erosion<-events[grep("jam",events)];erosion
 
 ```
 
