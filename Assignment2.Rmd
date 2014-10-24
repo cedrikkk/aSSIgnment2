@@ -1,7 +1,6 @@
 ---
 title: "Assignment2"
-author: "Kameni"
-date: "Thursday, September 18, 2014"
+date: "Friday, October 24, 2014"
 output: html_document
 ---
 # Title: 
@@ -74,8 +73,8 @@ stormData<-cbind(stormData,years) # add the new column
 
 We reduce the data frame: We will concentrate our analysis on the  observations between 1996 and 2011
 ```{r}
-reducedDf<- stormData[stormData$years >= 1996,]
-head(reducedDf)
+reducedDate<- stormData[stormData$years >= 1996,]
+dim(reducedDate)
 ```
 
 
@@ -89,16 +88,16 @@ Subsetting for only the observations where one of those variables is >0 leaves <
 We remove all rows where either the pair of fatalities and injuries are both zero, or propertydamage and cropdamage both are zero. 
 
 ```{r}
-fatalInjury<-subset(reducedDf,FATALITIES > 0 & INJURIES > 0);dim(fatalInjury)
-fatalInjury1<-subset(reducedDf,FATALITIES == 0 & INJURIES == 0);dim(fatalInjury1)
+fatalInjury<-subset(reducedDate,FATALITIES > 0 & INJURIES > 0);dim(fatalInjury)
+fatalInjury1<-subset(reducedDate,FATALITIES == 0 & INJURIES == 0);dim(fatalInjury1)
 
-asd<-reducedDf[reducedDf$FATALITIES == 0 &  reducedDf$INJURIES == 0,]
+asd<-reducedDate[reducedDate$FATALITIES == 0 &  reducedDate$INJURIES == 0,]
  dim(asd)    
-dim(reducedDf)-dim(fatalInjury1)
+dim(reducedDate)-dim(fatalInjury1)
 
 
 
-class(reducedDf$FATALITIES)
+class(reducedDate$FATALITIES)
 head(asd,50)
 head(stormData)
  names(stormData)

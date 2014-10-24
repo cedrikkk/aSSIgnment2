@@ -1,19 +1,17 @@
 ---
 title: "Untitled"
 author: "Kameni"
-date: "Sunday, September 21, 2014"
+"Friday, October 24, 2014"
 output: html_document
 ---
 # Title: 
- Natural disasters in the USA: theier impact on People and goods
-
+ Natural disasters in the USA: Their impact on People and goods
 
 ## synopsis
 
 This document reports on a peer assessment for the coursera Data Science Specialization track: Reproducible Research.
 Severe weather events has large impacts on both the health of the population, and the health of the economy in the United States. In this report I analysed the severe weather events for the period 1996-2011 as provided by the U.S. National Oceanic and Atmospheric Administration (NOAA).
-
-This analysis shows that tornado have the highest number of injuries per year  and that Heat causes the  most fatalities.
+atalities.
 
 
 ## Data Loading and  Processing
@@ -359,6 +357,7 @@ head(cropDf[order(-cropDf$cropDamage),])
 
 ```
 
+This analysis shows that tornado have the highest number of injuries per year  and that Heat causes the  most f
 
 ```{r}
 sessionInfo()
