@@ -1,0 +1,308 @@
+---
+title: "Peer Assessment 2"
+output: html_document
+---
+
+# Title: 
+ Natural disasters in the USA: Their impact on People and goods
+
+
+## synopsis
+
+This document reports on a peer assessment for the coursera Data Science Specialization track: Reproducible Research.
+Severe weather events has large impacts on both the health of the population, and the health of the economy in the United States. In this report I analysed the severe weather events for the period 1996-2011 as provided by the U.S. National Oceanic and Atmospheric Administration (NOAA).
+
+
+
+## 1 Data Loading and  Processing
+```{r}
+Sys.setenv(LANG = "en_US.UTF-8")
+library(R.utils)
+```
+
+
+ We start the analysis by downloading the data if it is not already in the working directory.
+```{r}
+
+if (!file.exists("./StormData")) {dir.create("./StormData")
+url <- "http://d396qusza40orc.cloudfront.net/repdata%2Fdata%2FStormData.csv.bz2"
+download.file(url,"./StormData/dataSet.zip")}
+
+
+```
+
+
+
+#####read in the data. Since the data set 
+```{r}
+if (!file.exists("./StormData/dataSet.csv")) {
+    bunzip2 ("./StormData/dataSet.zip", "./StormData/dataSet.csv")
+}
+
+stormData<- read.csv ("./StormData/dataSet.csv",stringsAsFactors=F)
+```
+
+
+
+
+We will start by reducing the data set and keep only the columns we need for our analysis.
+
+
+ We select the relavant columns
+```{r}
+selectedColumns<-columNames[c(2,8,23,24,25,26,27,28)] 
+
+# we reduce the dimensions of the data set
+reducedDf<-stormData[,selectedColumns]
+
+#rm object "stormData"
+rm<-(stormData)
+```
+
+##### Processing the the BGN_DATE column
+
+```{r}
+# remove the "0:00:0" time indication to make the BGN_DATE column easy to handle
+reducedDf$BGN_DATE<-gsub(" 0:00:00","",reducedDf$BGN_DATE)
+
+# replace the / by the - 
+reducedDf$BGN_DATE<-gsub("/","-",reducedDf$BGN_DATE)
+
+#formate the date
+reducedDf$BGN_DATE<-as.Date(reducedDf$BGN_DATE,format = "%m-%d-%Y")
+
+head(reducedDf$BGN_DATE)
+
+
+```
+
+ 
+ 
+ We will replace the "BGN_DATE"" column by a new column with only the year whitout month an day. This step will help to easily reduce the data set by removing observations before 1996.
+ 
+ 
+```{r}
+#select the 4 first characters of the BGN_DATE column
+#the 4 first characters correspond to the year
+years<-as.numeric(unclass(substr(reducedDf$BGN_DATE, 1, 4)))
+
+#Add the column  "years""
+reducedDf<-cbind(reducedDf,years) # add the new column
+
+#remove the "BGN_DATE"column from data set
+reducedDf$BGN_DATE <-NULL
+
+#view the data 
+dim(reducedDf)
+
+
+# We now reduce the data frame: We will concentrate our analysis on the  observations between 1996 and 2011
+
+yearsDf<- reducedDf[reducedDf$years >= 1996,]
+```
+
+
+##### processing the Columns: FATALITIES & INJURIES & PROPDMG & CROPDMG
+
+We remove all rows where either the pair of fatalities and injuries are both zero, or propertydamage and cropdamage both are zero. 
+If a row has PROPDMG = 0, CROPDMG=0, INJURIES+FATALITIES=0 then that observation has no use in this project.  
+
+
+```{r}
+#Subsetting for only the observations where one of those variables is >0 
+rmZero<-yearsDf[(yearsDf$FATALITIES > 0 & yearsDf$INJURIES > 0)|yearsDf$PROPDMG  > 0|yearsDf$CROPDMG > 0,]
+
+# uppercasing and cleaned up the PROPDMGEXP and CROPDMGEXP columns so that all the blank values were zero
+rmZero$PROPDMGEXP<-toupper(gsub("^$","0",rmZero$PROPDMGEXP))# replace blanks with 0
+rmZero$CROPDMGEXP<-toupper(gsub("^$","0",rmZero$CROPDMGEXP))# replace blanks with 0
+
+
+```
+
+
+ We create 2 columns with the numeric mulpiers to replace the  CROPDMGEXP and PROPDMGEXP columns. then delete the columns PROPDMGEXP and CROPDMGEXP and calculate the domages caused by the events in dollar. Then Calculage the value of the damages for both crop and propdamgaes
+ 
+ 
+##### Value of Cropdamages
+```{r}
+cropExpDf<- data.frame(cropMultiplier=c(1, 1000,  1000000,1000000000), Character = c("0", "K","M","B" ))
+
+cropExpDf # data frame with character & muneric multipliers
+MergeCropExp<-merge(rmZero,cropExpDf,by.x="CROPDMGEXP",by.y="Character" )
+MergeCropExp$CROPDMGEXP<-NULL # delete the CROPDMGEXP column
+
+# calculate the value of the cropdamage in a colum 
+cropDamage<-MergeCropExp$CROPDMG*MergeCropExp$cropMultiplier
+MergeCropExp<-cbind(MergeCropExp,cropDamage)
+```
+
+
+##### Value of Propdamages
+
+```{r}
+propExpDf<- data.frame(propMultiplier=c(1, 1000,  1000000,1000000000), Characters = c("0", "K","M","B" ))
+
+propExpDf # data frame with character & muneric multipliers
+MergedDf<-merge(MergeCropExp,propExpDf,by.x="PROPDMGEXP",by.y="Characters" )
+MergedDf$PROPDMGEXP<-NULL # delete the PROPDMGEXP column
+
+# calculate the value of the propdamage in a colum 
+propDamage<-MergedDf$PROPDMG*MergedDf$propMultiplier
+MergedDf<-cbind(MergedDf,propDamage)
+
+```
+
+
+##### Processing the column "EVTYPE"
+ 
+We want to  remove white space at the begining of some rows. We have to repeat
+ the operation several times since some rows have more than one white spaces at the begining. 
+  
+```{r}
+#  find rows that begin with white space then remove the white space 
+MergedDf$EVTYPE<- tolower(MergedDf$EVTYPE) # create a vector of different Event type
+for(i in 1:4) {   # repeat the action  times
+MergedDf$EVTYPE<-gsub("^ ", "",MergedDf$EVTYPE)
+
+}
+
+```
+
+ 
+clean up the names of event types
+
+```{r}
+
+MergedDf$EVTYPE<-gsub("tstm","thunderstorm",MergedDf$EVTYPE)
+MergedDf$EVTYPE<-gsub("flash flood/flood","flash flood",MergedDf$EVTYPE)
+MergedDf$EVTYPE<-gsub("flood/flash/flood","flash flood",MergedDf$EVTYPE)
+MergedDf$EVTYPE<-gsub("erosion/cstl flood","coastal flood",MergedDf$EVTYPE)
+MergedDf$EVTYPE<-gsub("coastal flooding","coastal flood",MergedDf$EVTYPE)
+MergedDf$EVTYPE<-gsub("coastal flooding/erosion","coastal flood",MergedDf$EVTYPE)
+MergedDf$EVTYPE<-gsub("coastal  flooding/erosion","coastal flood",MergedDf$EVTYPE)
+MergedDf$EVTYPE<-gsub("ice jam flood \\(minor","ice jam flood",MergedDf$EVTYPE)
+MergedDf$EVTYPE<-gsub("^lake effect snow$" ,"lake-effect snow",MergedDf$EVTYPE)
+MergedDf$EVTYPE<-gsub("^heavy snow shower$","heavy snow",MergedDf$EVTYPE)
+MergedDf$EVTYPE<-gsub("^snow squalls$","snow squall" ,MergedDf$EVTYPE)
+MergedDf$EVTYPE<-gsub("^extreme cold$","extreme cold/wind chill" ,MergedDf$EVTYPE)
+MergedDf$EVTYPE<-gsub("^cold/wind chill$","extreme cold/wind chill" ,MergedDf$EVTYPE)
+MergedDf$EVTYPE<-gsub("^unseasonably cold$","unseasonable cold" ,MergedDf$EVTYPE)
+MergedDf$EVTYPE<-gsub("^gusty winds$","gusty wind" ,MergedDf$EVTYPE)
+MergedDf$EVTYPE<-gsub("^high winds$","high wind" ,MergedDf$EVTYPE)
+MergedDf$EVTYPE<-gsub("^thunderstorm wind 45$","thunderstorm wind" ,MergedDf$EVTYPE)
+MergedDf$EVTYPE<-gsub("^thunderstorm wind  \\(g45\\)$","thunderstorm wind" ,MergedDf$EVTYPE)
+MergedDf$EVTYPE<-gsub("^thunderstorm wind \\(g45\\)$","thunderstorm wind" ,MergedDf$EVTYPE)
+MergedDf$EVTYPE<-gsub("^thunderstorm wind \\(g40\\)$","thunderstorm wind" ,MergedDf$EVTYPE)
+MergedDf$EVTYPE<-gsub("^thunderstorm wind \\(g35\\)$","thunderstorm wind" ,MergedDf$EVTYPE)
+MergedDf$EVTYPE<-gsub("^high wind \\(g40\\)$","high wind" ,MergedDf$EVTYPE)
+MergedDf$EVTYPE<-gsub("^thunderstorm wind g45$","thunderstorm wind" ,MergedDf$EVTYPE)
+MergedDf$EVTYPE<-gsub("^thunderstorm wind 40$","thunderstorm wind" ,MergedDf$EVTYPE)
+MergedDf$EVTYPE<-gsub("^thunderstorm wind \\(41\\)$" ,"thunderstorm wind" ,MergedDf$EVTYPE)
+MergedDf$EVTYPE<-gsub("^non\\-thunderstorm wind$","non thunderstorm wind" ,MergedDf$EVTYPE)
+MergedDf$EVTYPE<-gsub("^strong wind$","strong winds" ,MergedDf$EVTYPE)
+MergedDf$EVTYPE<-gsub("^typhoon$","hurricane/typhoon" ,MergedDf$EVTYPE)
+MergedDf$EVTYPE<-gsub("^rip currents$","rip current" ,MergedDf$EVTYPE)
+MergedDf$EVTYPE<-gsub("^thunderstorm$","thunderstorm wind" ,MergedDf$EVTYPE)
+MergedDf$EVTYPE<-gsub("^winter weather mix$","winter weather/mix" ,MergedDf$EVTYPE)
+MergedDf$EVTYPE<-gsub("^frost$","frost/freeze" ,MergedDf$EVTYPE)
+MergedDf$EVTYPE<-gsub("^landslides$","landslide" ,MergedDf$EVTYPE)
+MergedDf$EVTYPE<-gsub("^mixed precip$","mixed precipitation" ,MergedDf$EVTYPE)
+MergedDf$EVTYPE<-gsub("^mudslide$","mud slide" ,MergedDf$EVTYPE)
+MergedDf$EVTYPE<-gsub("^river flooding$","river flood" ,MergedDf$EVTYPE)
+
+head(MergedDf)
+```
+
+
+the clean up process is over now. the data is tidy.
+
+
+
+ summarize the  injuries  ,fatalities, crop and property damages by event type 
+ 
+```{r}
+
+
+harmDamageDf <- aggregate(INJURIES~EVTYPE + FATALITIES +  cropDamage + propDamage,MergedDf,sum)
+
+head(harmDamageDf)
+
+```
+
+### Across the United States, which types of events (as indicated in the EVTYPE variable) are most harmful with respect to population health?
+
+
+
+
+
+
+  view the 6 events that cause  most injuries  and fatalities
+ 
+ 
+```{r}
+injurDf<-harmDamageDf[,c(1,5)]
+ head(injurDf[order(-injurDf$INJURIES),]) 
+
+fatalDf<-harmDamageDf[,c(1,2)]
+head(fatalDf[order(-fatalDf$FATALITIES),]) 
+```
+
+
+
+Plotting the results
+
+
+
+```{r,injuries, fig.height=9,fig.width=10}
+
+
+barplot(head(injurDf$INJURIES))
+
+```
+
+
+
+
+
+
+### Across the United States, which types of events have the greatest economic consequences?
+
+view the 6 events that cause  most prop  and prop damages
+```{r}
+
+propDf<-harmDamageDf[,c(1,4)]
+head(propDf[order(-propDf$propDamage),])
+
+cropDf<-harmDamageDf[,c(1,3)]
+head(cropDf[order(-cropDf$cropDamage),])
+
+```
+
+
+
+## Results 
+
+ 
+ 
+```{r}
+ 
+#the  event that causes the most injuries
+head(injurDf[order(-injurDf$INJURIES),])
+
+
+#the  event that causes the most fatalies
+head(fatalDf[order(-fatalDf$FATALITIES),]
+
+ #the  event that causes the most prop domages
+head(propDf[order(-propDf$propDamage),])
+
+#the  event that causes the most crop damages
+head(cropDf[order(-cropDf$cropDamage),])
+
+```
+
+
+This analysis shows that tornado have the highest number of injuries per year  and that Heat causes the  most fatalities.
+```{r}
+sessionInfo()
+```
